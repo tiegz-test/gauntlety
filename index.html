@@ -40,13 +40,42 @@
     color: #888;
     letter-spacing: 2px;
   }
+  #controls {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: repeat(3, 48px);
+    grid-template-rows: repeat(3, 48px);
+    gap: 4px;
+  }
+  #controls button {
+    background: #222;
+    color: #f0c040;
+    border: 2px solid #444;
+    font-family: "Courier New", monospace;
+    font-size: 20px;
+    cursor: pointer;
+    user-select: none;
+  }
+  #controls button:active {
+    background: #444;
+  }
+  #controls .up    { grid-column: 2; grid-row: 1; }
+  #controls .left  { grid-column: 1; grid-row: 2; }
+  #controls .down  { grid-column: 2; grid-row: 3; }
+  #controls .right { grid-column: 3; grid-row: 2; }
 </style>
 </head>
 <body>
 <div id="wrap">
   <h1>GAUNTLETY &mdash; LEVEL 1</h1>
   <canvas id="game" width="640" height="480"></canvas>
-  <div class="hud">TOP-DOWN DUNGEON CRAWLER</div>
+  <div class="hud">ARROWS / WASD TO MOVE</div>
+  <div id="controls">
+    <button class="up"    data-dir="up"    aria-label="Up">&#9650;</button>
+    <button class="left"  data-dir="left"  aria-label="Left">&#9664;</button>
+    <button class="down"  data-dir="down"  aria-label="Down">&#9660;</button>
+    <button class="right" data-dir="right" aria-label="Right">&#9654;</button>
+  </div>
 </div>
 
 <script>
@@ -217,6 +246,49 @@
 
     drawSprite(PLAYER_SPRITE_DOWN, PLAYER_PALETTE, player.col * TILE, player.row * TILE, 2);
   }
+
+  function isBlocked(col, row) {
+    if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return true;
+    return LEVEL[row][col] === "#";
+  }
+
+  function move(dx, dy) {
+    const nc = player.col + dx;
+    const nr = player.row + dy;
+    if (isBlocked(nc, nr)) return;
+    player.col = nc;
+    player.row = nr;
+    render();
+  }
+
+  const DIRS = {
+    up:    [ 0, -1],
+    down:  [ 0,  1],
+    left:  [-1,  0],
+    right: [ 1,  0],
+  };
+
+  window.addEventListener("keydown", (e) => {
+    let dir = null;
+    switch (e.key) {
+      case "ArrowUp": case "w": case "W": dir = "up"; break;
+      case "ArrowDown": case "s": case "S": dir = "down"; break;
+      case "ArrowLeft": case "a": case "A": dir = "left"; break;
+      case "ArrowRight": case "d": case "D": dir = "right"; break;
+    }
+    if (dir) {
+      e.preventDefault();
+      const [dx, dy] = DIRS[dir];
+      move(dx, dy);
+    }
+  });
+
+  document.querySelectorAll("#controls button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const [dx, dy] = DIRS[btn.dataset.dir];
+      move(dx, dy);
+    });
+  });
 
   render();
 })();
