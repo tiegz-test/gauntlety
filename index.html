@@ -144,11 +144,12 @@
   ctx.imageSmoothingEnabled = false;
 
   function drawFloor(x, y) {
-    // Dark stone floor with grid speckle
-    ctx.fillStyle = "#1a1208";
+    // Bright supermarket linoleum
+    ctx.fillStyle = "#e8e8e0";
     ctx.fillRect(x, y, TILE, TILE);
 
-    ctx.fillStyle = "#2a1d10";
+    // Speckle for tiled flooring
+    ctx.fillStyle = "#d0d0c8";
     for (let py = 0; py < TILE; py += 8) {
       for (let px = 0; px < TILE; px += 8) {
         if (((px + py) >> 3) % 2 === 0) {
@@ -157,36 +158,87 @@
       }
     }
 
-    // Subtle grid lines
-    ctx.fillStyle = "#0e0904";
+    // Tile grout
+    ctx.fillStyle = "#b8b8b0";
     ctx.fillRect(x, y + TILE - 1, TILE, 1);
     ctx.fillRect(x + TILE - 1, y, 1, TILE);
   }
 
-  function drawWall(x, y) {
-    // Brick wall: base, highlight, mortar
-    ctx.fillStyle = "#5a5a78";
+  // Meat shelf: outer wall. Chrome shelf frame with packaged red meat.
+  function drawMeatShelf(x, y) {
+    // Shelf back panel
+    ctx.fillStyle = "#c8ccd0";
     ctx.fillRect(x, y, TILE, TILE);
 
-    ctx.fillStyle = "#7878a0";
-    // Brick rows: row 0 offset, row 1 not, alternating
-    const brickH = 8;
-    const brickW = 16;
-    for (let row = 0; row < TILE / brickH; row++) {
-      const offset = (row % 2) * (brickW / 2);
-      for (let col = -1; col < TILE / brickW + 1; col++) {
-        const bx = x + col * brickW + offset;
-        const by = y + row * brickH;
-        ctx.fillRect(bx + 1, by + 1, brickW - 2, brickH - 2);
-      }
+    // Two stacked meat packages
+    const packs = [
+      { py: 3 },
+      { py: 17 },
+    ];
+    for (const p of packs) {
+      // White styrofoam tray
+      ctx.fillStyle = "#f8f8f8";
+      ctx.fillRect(x + 2, y + p.py, TILE - 4, 12);
+      // Red meat
+      ctx.fillStyle = "#a01818";
+      ctx.fillRect(x + 4, y + p.py + 2, TILE - 8, 6);
+      // White marbling/fat
+      ctx.fillStyle = "#e8b0a0";
+      ctx.fillRect(x + 6, y + p.py + 3, 3, 1);
+      ctx.fillRect(x + 14, y + p.py + 5, 4, 1);
+      ctx.fillRect(x + 22, y + p.py + 4, 3, 1);
+      // Plastic wrap highlight
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(x + 4, y + p.py + 1, 6, 1);
+      // Price sticker
+      ctx.fillStyle = "#f0c040";
+      ctx.fillRect(x + TILE - 9, y + p.py + 8, 6, 3);
     }
 
-    // Top highlight
-    ctx.fillStyle = "#a0a0c8";
+    // Chrome shelf rails
+    ctx.fillStyle = "#909498";
     ctx.fillRect(x, y, TILE, 2);
-    // Bottom shadow
-    ctx.fillStyle = "#2a2a40";
+    ctx.fillRect(x, y + 14, TILE, 2);
     ctx.fillRect(x, y + TILE - 2, TILE, 2);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(x, y, TILE, 1);
+    ctx.fillRect(x, y + 14, TILE, 1);
+  }
+
+  // Aisle stack: inner wall. Stacked cardboard boxes of food.
+  function drawBoxAisle(x, y) {
+    // Floor underneath shows through edges; fill base
+    ctx.fillStyle = "#a87038";
+    ctx.fillRect(x, y, TILE, TILE);
+
+    // Two stacked boxes (top, bottom)
+    const boxes = [
+      { py: 0,  c1: "#c08850", c2: "#8a5520", label: "#e84040" }, // cereal-ish
+      { py: 16, c1: "#b07840", c2: "#7a4818", label: "#3060c0" }, // pasta-ish
+    ];
+    for (const b of boxes) {
+      // Box face
+      ctx.fillStyle = b.c1;
+      ctx.fillRect(x + 1, y + b.py + 1, TILE - 2, 14);
+      // Box edges/shadow
+      ctx.fillStyle = b.c2;
+      ctx.fillRect(x + 1, y + b.py + 14, TILE - 2, 1);
+      ctx.fillRect(x + TILE - 2, y + b.py + 1, 1, 14);
+      // Box top flap line
+      ctx.fillStyle = b.c2;
+      ctx.fillRect(x + 1, y + b.py + 4, TILE - 2, 1);
+      // Label patch
+      ctx.fillStyle = b.label;
+      ctx.fillRect(x + 6, y + b.py + 6, TILE - 12, 6);
+      // Label text shimmer
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(x + 8, y + b.py + 8, 4, 1);
+      ctx.fillRect(x + 16, y + b.py + 8, 6, 1);
+    }
+  }
+
+  function isOuterWall(c, r) {
+    return c === 0 || c === COLS - 1 || r === 0 || r === ROWS - 1;
   }
 
   function drawDoor(x, y) {
@@ -236,7 +288,10 @@
         const x = c * TILE;
         const y = r * TILE;
         switch (ch) {
-          case "#": drawWall(x, y); break;
+          case "#":
+            if (isOuterWall(c, r)) drawMeatShelf(x, y);
+            else drawBoxAisle(x, y);
+            break;
           case "D": drawDoor(x, y); break;
           case "X": drawExit(x, y); break;
           default:  drawFloor(x, y); break;
