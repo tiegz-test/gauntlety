@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Gauntlety</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #000;
+    color: #ddd;
+    font-family: "Courier New", monospace;
+    height: 100%;
+    overflow: hidden;
+  }
+  #wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+  }
+  h1 {
+    margin: 8px 0;
+    font-size: 18px;
+    letter-spacing: 4px;
+    color: #f0c040;
+    text-shadow: 2px 2px 0 #804000;
+  }
+  canvas {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    background: #000;
+    border: 2px solid #444;
+    box-shadow: 0 0 20px #222;
+  }
+  .hud {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #888;
+    letter-spacing: 2px;
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <h1>GAUNTLETY &mdash; LEVEL 1</h1>
+  <canvas id="game" width="640" height="480"></canvas>
+  <div class="hud">TOP-DOWN DUNGEON CRAWLER</div>
+</div>
+
+<script>
+(() => {
+  const TILE = 32;
+  const COLS = 20;
+  const ROWS = 15;
+
+  // Tile legend:
+  //  # = wall
+  //  . = floor
+  //  D = door (decorative for now)
+  //  X = exit
+  const LEVEL = [
+    "####################",
+    "#........#.........#",
+    "#........#.........#",
+    "#..####..#..####...#",
+    "#..#........#.#....#",
+    "#..#..####..#.#....D",
+    "#.....#..#....#....#",
+    "####..#..#....######",
+    "#.....#..#.........#",
+    "#..####..######....#",
+    "#.........#........#",
+    "#..#####..#..####..#",
+    "#......#.....#.....#",
+    "#......#.....#....X#",
+    "####################",
+  ];
+
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  ctx.imageSmoothingEnabled = false;
+
+  function drawFloor(x, y) {
+    // Dark stone floor with grid speckle
+    ctx.fillStyle = "#1a1208";
+    ctx.fillRect(x, y, TILE, TILE);
+
+    ctx.fillStyle = "#2a1d10";
+    for (let py = 0; py < TILE; py += 8) {
+      for (let px = 0; px < TILE; px += 8) {
+        if (((px + py) >> 3) % 2 === 0) {
+          ctx.fillRect(x + px, y + py, 4, 4);
+        }
+      }
+    }
+
+    // Subtle grid lines
+    ctx.fillStyle = "#0e0904";
+    ctx.fillRect(x, y + TILE - 1, TILE, 1);
+    ctx.fillRect(x + TILE - 1, y, 1, TILE);
+  }
+
+  function drawWall(x, y) {
+    // Brick wall: base, highlight, mortar
+    ctx.fillStyle = "#5a5a78";
+    ctx.fillRect(x, y, TILE, TILE);
+
+    ctx.fillStyle = "#7878a0";
+    // Brick rows: row 0 offset, row 1 not, alternating
+    const brickH = 8;
+    const brickW = 16;
+    for (let row = 0; row < TILE / brickH; row++) {
+      const offset = (row % 2) * (brickW / 2);
+      for (let col = -1; col < TILE / brickW + 1; col++) {
+        const bx = x + col * brickW + offset;
+        const by = y + row * brickH;
+        ctx.fillRect(bx + 1, by + 1, brickW - 2, brickH - 2);
+      }
+    }
+
+    // Top highlight
+    ctx.fillStyle = "#a0a0c8";
+    ctx.fillRect(x, y, TILE, 2);
+    // Bottom shadow
+    ctx.fillStyle = "#2a2a40";
+    ctx.fillRect(x, y + TILE - 2, TILE, 2);
+  }
+
+  function drawDoor(x, y) {
+    drawFloor(x, y);
+    ctx.fillStyle = "#803010";
+    ctx.fillRect(x + 4, y + 2, TILE - 8, TILE - 4);
+    ctx.fillStyle = "#b04820";
+    ctx.fillRect(x + 6, y + 4, TILE - 12, TILE - 8);
+    ctx.fillStyle = "#f0c040";
+    ctx.fillRect(x + TILE - 10, y + TILE / 2 - 1, 3, 3);
+  }
+
+  function drawExit(x, y) {
+    drawFloor(x, y);
+    // Glowing exit tile
+    ctx.fillStyle = "#204020";
+    ctx.fillRect(x + 2, y + 2, TILE - 4, TILE - 4);
+    ctx.fillStyle = "#40c040";
+    ctx.fillRect(x + 6, y + 6, TILE - 12, TILE - 12);
+    ctx.fillStyle = "#a0ffa0";
+    ctx.fillRect(x + 12, y + 12, TILE - 24, TILE - 24);
+  }
+
+  function render() {
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const ch = LEVEL[r][c];
+        const x = c * TILE;
+        const y = r * TILE;
+        switch (ch) {
+          case "#": drawWall(x, y); break;
+          case "D": drawDoor(x, y); break;
+          case "X": drawExit(x, y); break;
+          default:  drawFloor(x, y); break;
+        }
+      }
+    }
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
