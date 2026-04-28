@@ -78,6 +78,38 @@
     "####################",
   ];
 
+  const PLAYER_PALETTE = {
+    O: "#1a1208",
+    C: "#c02020",
+    S: "#e0b090",
+    E: "#101010",
+    T: "#f0f0f0",
+    J: "#3050a0",
+    B: "#604020",
+    F: "#402810",
+  };
+
+  const PLAYER_SPRITE_DOWN = [
+    "................",
+    "....OOOOOO......",
+    "...OCCCCCCO.....",
+    "..OCCCCCCCCO....",
+    "..OCCCCCCCCO....",
+    "..OOOOOOOOOOO...",
+    "..OSSESSESSO....",
+    "..OSSSSSSSSO....",
+    "...OSSSSSSO.....",
+    "..OBTTTTTTBO....",
+    "..OBTTTTTTBO....",
+    "..OBTTTTTTBO....",
+    "...OJJJJJJO.....",
+    "...OJJ..JJO.....",
+    "...OFF..FFO.....",
+    "...OOO..OOO.....",
+  ];
+
+  const player = { col: 2, row: 1 };
+
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
   ctx.imageSmoothingEnabled = false;
@@ -138,6 +170,22 @@
     ctx.fillRect(x + TILE - 10, y + TILE / 2 - 1, 3, 3);
   }
 
+  function drawSprite(sprite, palette, dx, dy, scale = 2) {
+    let lastKey = null;
+    for (let r = 0; r < sprite.length; r++) {
+      const row = sprite[r];
+      for (let c = 0; c < row.length; c++) {
+        const key = row[c];
+        if (key === ".") continue;
+        if (key !== lastKey) {
+          ctx.fillStyle = palette[key];
+          lastKey = key;
+        }
+        ctx.fillRect(dx + c * scale, dy + r * scale, scale, scale);
+      }
+    }
+  }
+
   function drawExit(x, y) {
     drawFloor(x, y);
     // Glowing exit tile
@@ -166,6 +214,8 @@
         }
       }
     }
+
+    drawSprite(PLAYER_SPRITE_DOWN, PLAYER_PALETTE, player.col * TILE, player.row * TILE, 2);
   }
 
   render();
