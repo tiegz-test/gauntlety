@@ -140,7 +140,151 @@
     "...OOO..OOO.....",
   ];
 
-  const player = { x: 2 * TILE, y: 1 * TILE };
+  const PLAYER_SPRITE_UP = [
+    "................",
+    "....OOOOOO......",
+    "...OCCCCCCO.....",
+    "..OCCCCCCCCO....",
+    "..OCCCCCCCCO....",
+    "..OOOOOOOOOOO...",
+    "..OSSSSSSSSO....",
+    "..OSSSSSSSSO....",
+    "...OSSSSSSO.....",
+    "..OBTTTTTTBO....",
+    "..OBTTTTTTBO....",
+    "..OBTTTTTTBO....",
+    "...OJJJJJJO.....",
+    "...OJJ..JJO.....",
+    "...OFF..FFO.....",
+    "...OOO..OOO.....",
+  ];
+
+  const PLAYER_SPRITE_LEFT = [
+    "................",
+    "....OOOOOO......",
+    "...OCCCCCCO.....",
+    "..OCCCCCCCCO....",
+    "..OCCCCCCCCO....",
+    "..OOOOOOOOOOO...",
+    "..OSESSSSSSO....",
+    "..OSSSSSSSSO....",
+    "...OSSSSSSO.....",
+    "..OBTTTTTTBO....",
+    "..OBTTTTTTBO....",
+    "..OBTTTTTTBO....",
+    "...OJJJJJJO.....",
+    "...OJJ..JJO.....",
+    "...OFF..FFO.....",
+    "...OOO..OOO.....",
+  ];
+
+  const PLAYER_SPRITE_RIGHT = [
+    "................",
+    "....OOOOOO......",
+    "...OCCCCCCO.....",
+    "..OCCCCCCCCO....",
+    "..OCCCCCCCCO....",
+    "..OOOOOOOOOOO...",
+    "..OSSSSSSESO....",
+    "..OSSSSSSSSO....",
+    "...OSSSSSSO.....",
+    "..OBTTTTTTBO....",
+    "..OBTTTTTTBO....",
+    "..OBTTTTTTBO....",
+    "...OJJJJJJO.....",
+    "...OJJ..JJO.....",
+    "...OFF..FFO.....",
+    "...OOO..OOO.....",
+  ];
+
+  const PLAYER_SPRITE_DOWN_LEFT = [
+    "................",
+    "....OOOOOO......",
+    "...OCCCCCCO.....",
+    "..OCCCCCCCCO....",
+    "..OCCCCCCCCO....",
+    "..OOOOOOOOOOO...",
+    "..OSESSESSSO....",
+    "..OSSSSSSSSO....",
+    "...OSSSSSSO.....",
+    "..OBTTTTTTBO....",
+    "..OBTTTTTTBO....",
+    "..OBTTTTTTBO....",
+    "...OJJJJJJO.....",
+    "...OJJ..JJO.....",
+    "...OFF..FFO.....",
+    "...OOO..OOO.....",
+  ];
+
+  const PLAYER_SPRITE_DOWN_RIGHT = [
+    "................",
+    "....OOOOOO......",
+    "...OCCCCCCO.....",
+    "..OCCCCCCCCO....",
+    "..OCCCCCCCCO....",
+    "..OOOOOOOOOOO...",
+    "..OSSSESSESO....",
+    "..OSSSSSSSSO....",
+    "...OSSSSSSO.....",
+    "..OBTTTTTTBO....",
+    "..OBTTTTTTBO....",
+    "..OBTTTTTTBO....",
+    "...OJJJJJJO.....",
+    "...OJJ..JJO.....",
+    "...OFF..FFO.....",
+    "...OOO..OOO.....",
+  ];
+
+  const PLAYER_SPRITE_UP_LEFT = [
+    "................",
+    "....OOOOOO......",
+    "...OCCCCCCO.....",
+    "..OCCCCCCCCO....",
+    "..OCCCCCCCCO....",
+    "..OOOOOOOOOOO...",
+    "..OCSSSSSSSO....",
+    "..OSSSSSSSSO....",
+    "...OSSSSSSO.....",
+    "..OBTTTTTTBO....",
+    "..OBTTTTTTBO....",
+    "..OBTTTTTTBO....",
+    "...OJJJJJJO.....",
+    "...OJJ..JJO.....",
+    "...OFF..FFO.....",
+    "...OOO..OOO.....",
+  ];
+
+  const PLAYER_SPRITE_UP_RIGHT = [
+    "................",
+    "....OOOOOO......",
+    "...OCCCCCCO.....",
+    "..OCCCCCCCCO....",
+    "..OCCCCCCCCO....",
+    "..OOOOOOOOOOO...",
+    "..OSSSSSSSCO....",
+    "..OSSSSSSSSO....",
+    "...OSSSSSSO.....",
+    "..OBTTTTTTBO....",
+    "..OBTTTTTTBO....",
+    "..OBTTTTTTBO....",
+    "...OJJJJJJO.....",
+    "...OJJ..JJO.....",
+    "...OFF..FFO.....",
+    "...OOO..OOO.....",
+  ];
+
+  const PLAYER_SPRITES = {
+    down:       PLAYER_SPRITE_DOWN,
+    up:         PLAYER_SPRITE_UP,
+    left:       PLAYER_SPRITE_LEFT,
+    right:      PLAYER_SPRITE_RIGHT,
+    down_left:  PLAYER_SPRITE_DOWN_LEFT,
+    down_right: PLAYER_SPRITE_DOWN_RIGHT,
+    up_left:    PLAYER_SPRITE_UP_LEFT,
+    up_right:   PLAYER_SPRITE_UP_RIGHT,
+  };
+
+  const player = { x: 2 * TILE, y: 1 * TILE, facing: "down" };
   const PLAYER_SIZE = 32;
   const SPEED = 2;
 
@@ -304,7 +448,7 @@
       }
     }
 
-    drawSprite(PLAYER_SPRITE_DOWN, PLAYER_PALETTE, Math.round(player.x), Math.round(player.y), 2);
+    drawSprite(PLAYER_SPRITES[player.facing], PLAYER_PALETTE, Math.round(player.x), Math.round(player.y), 2);
   }
 
   function isBlocked(col, row) {
@@ -366,6 +510,12 @@
     if (buttonDir === "down")  dy += SPEED;
     if (buttonDir === "left")  dx -= SPEED;
     if (buttonDir === "right") dx += SPEED;
+
+    if (dx !== 0 || dy !== 0) {
+      const vert = dy < 0 ? "up" : dy > 0 ? "down" : "";
+      const horiz = dx < 0 ? "left" : dx > 0 ? "right" : "";
+      player.facing = vert && horiz ? `${vert}_${horiz}` : (vert || horiz);
+    }
 
     if (dx !== 0 && !collides(player.x + dx, player.y)) player.x += dx;
     if (dy !== 0 && !collides(player.x, player.y + dy)) player.y += dy;
