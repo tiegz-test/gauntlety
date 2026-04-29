@@ -140,7 +140,9 @@
     "...OOO..OOO.....",
   ];
 
-  const player = { col: 2, row: 1 };
+  const player = { x: 2 * TILE, y: 1 * TILE };
+  const PLAYER_SIZE = 32;
+  const SPEED = 2;
 
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
@@ -302,7 +304,7 @@
       }
     }
 
-    drawSprite(PLAYER_SPRITE_DOWN, PLAYER_PALETTE, player.col * TILE, player.row * TILE, 2);
+    drawSprite(PLAYER_SPRITE_DOWN, PLAYER_PALETTE, Math.round(player.x), Math.round(player.y), 2);
   }
 
   function isBlocked(col, row) {
@@ -310,45 +312,69 @@
     return LEVEL[row][col] === "#";
   }
 
-  function move(dx, dy) {
-    const nc = player.col + dx;
-    const nr = player.row + dy;
-    if (isBlocked(nc, nr)) return;
-    player.col = nc;
-    player.row = nr;
-    render();
+  function collides(px, py) {
+    const x0 = px;
+    const y0 = py;
+    const x1 = px + PLAYER_SIZE - 1;
+    const y1 = py + PLAYER_SIZE - 1;
+    const c0 = Math.floor(x0 / TILE);
+    const c1 = Math.floor(x1 / TILE);
+    const r0 = Math.floor(y0 / TILE);
+    const r1 = Math.floor(y1 / TILE);
+    for (let r = r0; r <= r1; r++) {
+      for (let c = c0; c <= c1; c++) {
+        if (isBlocked(c, r)) return true;
+      }
+    }
+    return false;
   }
 
-  const DIRS = {
-    up:    [ 0, -1],
-    down:  [ 0,  1],
-    left:  [-1,  0],
-    right: [ 1,  0],
-  };
+  const keysDown = new Set();
+  let buttonDir = null;
 
   window.addEventListener("keydown", (e) => {
-    let dir = null;
-    switch (e.key) {
-      case "ArrowUp": case "w": case "W": dir = "up"; break;
-      case "ArrowDown": case "s": case "S": dir = "down"; break;
-      case "ArrowLeft": case "a": case "A": dir = "left"; break;
-      case "ArrowRight": case "d": case "D": dir = "right"; break;
-    }
-    if (dir) {
+    const k = e.key.toLowerCase();
+    if (["arrowup","arrowdown","arrowleft","arrowright","w","a","s","d"].includes(k)) {
+      keysDown.add(k);
       e.preventDefault();
-      const [dx, dy] = DIRS[dir];
-      move(dx, dy);
     }
   });
+  window.addEventListener("keyup", (e) => {
+    keysDown.delete(e.key.toLowerCase());
+  });
+  window.addEventListener("blur", () => keysDown.clear());
 
   document.querySelectorAll("#controls button").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const [dx, dy] = DIRS[btn.dataset.dir];
-      move(dx, dy);
-    });
+    const dir = btn.dataset.dir;
+    const press = (e) => { e.preventDefault(); buttonDir = dir; };
+    const release = () => { if (buttonDir === dir) buttonDir = null; };
+    btn.addEventListener("mousedown", press);
+    btn.addEventListener("mouseup", release);
+    btn.addEventListener("mouseleave", release);
+    btn.addEventListener("touchstart", press, { passive: false });
+    btn.addEventListener("touchend", release);
+    btn.addEventListener("touchcancel", release);
   });
 
-  render();
+  function tick() {
+    let dx = 0, dy = 0;
+    if (keysDown.has("arrowup")    || keysDown.has("w")) dy -= SPEED;
+    if (keysDown.has("arrowdown")  || keysDown.has("s")) dy += SPEED;
+    if (keysDown.has("arrowleft")  || keysDown.has("a")) dx -= SPEED;
+    if (keysDown.has("arrowright") || keysDown.has("d")) dx += SPEED;
+    if (buttonDir === "up")    dy -= SPEED;
+    if (buttonDir === "down")  dy += SPEED;
+    if (buttonDir === "left")  dx -= SPEED;
+    if (buttonDir === "right") dx += SPEED;
+
+    if (dx !== 0 && !collides(player.x + dx, player.y)) player.x += dx;
+    if (dy !== 0 && !collides(player.x, player.y + dy)) player.y += dy;
+
+    render();
+    requestAnimationFrame(tick);
+  }
+
+  requestAnimationFrame(tick);
 })();
 </script>
 </body>
