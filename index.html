@@ -89,6 +89,10 @@
   //  B = bakery bread shelf (wall)
   //  K = bakery cake display (wall)
   //  O = bakery donut display (wall)
+  //  A = produce apple bin (wall)
+  //  N = produce orange bin (wall)
+  //  G = produce grape bin (wall)
+  //  L = produce lettuce bin (wall)
   //  . = floor
   //  D = door (decorative for now)
   //  X = exit
@@ -101,8 +105,8 @@
     "#.######..######..######.#",
     "#.######..######..######.#",
     "#........................D",
-    "#.######..######..######.#",
-    "#.######..######..######.#",
+    "#.AANNGG..LLNNAA..GGAALL.#",
+    "#.AANNGG..LLNNAA..GGAALL.#",
     "#........................#",
     "#.######..######..######.#",
     "#.######..######..######.#",
@@ -473,6 +477,114 @@
     }
   }
 
+  // Produce bin: shared wooden crate background.
+  function drawProduceBin(x, y) {
+    ctx.fillStyle = "#8a5520";
+    ctx.fillRect(x, y, TILE, TILE);
+    // Plank seams
+    ctx.fillStyle = "#5a3010";
+    ctx.fillRect(x, y + 11, TILE, 1);
+    ctx.fillRect(x, y + 22, TILE, 1);
+    // Top highlight
+    ctx.fillStyle = "#a87040";
+    ctx.fillRect(x, y, TILE, 1);
+    // Bottom shadow
+    ctx.fillStyle = "#3a2008";
+    ctx.fillRect(x, y + TILE - 2, TILE, 2);
+  }
+
+  function drawApple(x, y) {
+    drawProduceBin(x, y);
+    const apples = [[4, 5], [18, 5], [4, 19], [18, 19]];
+    for (const [px, py] of apples) {
+      // Body
+      ctx.fillStyle = "#c01818";
+      ctx.fillRect(x + px + 1, y + py,     8, 9);
+      ctx.fillRect(x + px,     y + py + 1, 10, 7);
+      // Highlight
+      ctx.fillStyle = "#ff6060";
+      ctx.fillRect(x + px + 2, y + py + 2, 2, 2);
+      // Stem
+      ctx.fillStyle = "#5a3010";
+      ctx.fillRect(x + px + 5, y + py - 1, 1, 1);
+      // Leaf
+      ctx.fillStyle = "#40a040";
+      ctx.fillRect(x + px + 6, y + py - 1, 2, 1);
+    }
+  }
+
+  function drawOrange(x, y) {
+    drawProduceBin(x, y);
+    const oranges = [[4, 5], [18, 5], [4, 19], [18, 19]];
+    for (const [px, py] of oranges) {
+      // Body
+      ctx.fillStyle = "#e88820";
+      ctx.fillRect(x + px + 1, y + py,     8, 9);
+      ctx.fillRect(x + px,     y + py + 1, 10, 7);
+      // Highlight
+      ctx.fillStyle = "#ffb050";
+      ctx.fillRect(x + px + 2, y + py + 1, 3, 2);
+      // Dimples
+      ctx.fillStyle = "#c06010";
+      ctx.fillRect(x + px + 7, y + py + 5, 1, 1);
+      ctx.fillRect(x + px + 3, y + py + 6, 1, 1);
+      // Tiny leaf
+      ctx.fillStyle = "#208020";
+      ctx.fillRect(x + px + 4, y + py - 1, 2, 1);
+    }
+  }
+
+  function drawGrape(x, y) {
+    drawProduceBin(x, y);
+    const clusters = [[3, 3], [17, 3], [3, 17], [17, 17]];
+    for (const [cx, cy] of clusters) {
+      // Stem
+      ctx.fillStyle = "#5a3010";
+      ctx.fillRect(x + cx + 3, y + cy, 1, 2);
+      // Leaf
+      ctx.fillStyle = "#40a040";
+      ctx.fillRect(x + cx + 4, y + cy, 3, 2);
+      // Grape cluster
+      ctx.fillStyle = "#6028a0";
+      ctx.fillRect(x + cx,     y + cy + 2, 2, 2);
+      ctx.fillRect(x + cx + 2, y + cy + 2, 2, 2);
+      ctx.fillRect(x + cx + 4, y + cy + 2, 2, 2);
+      ctx.fillRect(x + cx + 6, y + cy + 2, 2, 2);
+      ctx.fillRect(x + cx + 1, y + cy + 4, 2, 2);
+      ctx.fillRect(x + cx + 3, y + cy + 4, 2, 2);
+      ctx.fillRect(x + cx + 5, y + cy + 4, 2, 2);
+      ctx.fillRect(x + cx + 2, y + cy + 6, 2, 2);
+      ctx.fillRect(x + cx + 4, y + cy + 6, 2, 2);
+      ctx.fillRect(x + cx + 3, y + cy + 8, 2, 2);
+      // Highlights
+      ctx.fillStyle = "#a060e0";
+      ctx.fillRect(x + cx + 1, y + cy + 2, 1, 1);
+      ctx.fillRect(x + cx + 5, y + cy + 2, 1, 1);
+      ctx.fillRect(x + cx + 4, y + cy + 4, 1, 1);
+    }
+  }
+
+  function drawLettuce(x, y) {
+    drawProduceBin(x, y);
+    const heads = [[4, 5], [18, 5], [4, 19], [18, 19]];
+    for (const [px, py] of heads) {
+      // Outer leaves
+      ctx.fillStyle = "#206020";
+      ctx.fillRect(x + px,     y + py + 1, 10, 7);
+      ctx.fillRect(x + px + 1, y + py,     8, 9);
+      // Mid leaves
+      ctx.fillStyle = "#40a040";
+      ctx.fillRect(x + px + 2, y + py + 2, 6, 5);
+      // Inner core
+      ctx.fillStyle = "#80d080";
+      ctx.fillRect(x + px + 3, y + py + 3, 4, 3);
+      // Veins
+      ctx.fillStyle = "#0e4010";
+      ctx.fillRect(x + px + 4, y + py + 1, 1, 7);
+      ctx.fillRect(x + px + 1, y + py + 4, 8, 1);
+    }
+  }
+
   // Bakery cake display: glass case with a tiered, cherry-topped cake.
   function drawCakeDisplay(x, y) {
     // Wood base
@@ -582,6 +694,10 @@
           case "B": drawBreadShelf(x, y); break;
           case "K": drawCakeDisplay(x, y); break;
           case "O": drawDonutDisplay(x, y); break;
+          case "A": drawApple(x, y); break;
+          case "N": drawOrange(x, y); break;
+          case "G": drawGrape(x, y); break;
+          case "L": drawLettuce(x, y); break;
           case "D": drawDoor(x, y); break;
           case "X": drawExit(x, y); break;
           default:  drawFloor(x, y); break;
@@ -592,7 +708,7 @@
     drawSprite(PLAYER_SPRITES[player.facing], PLAYER_PALETTE, Math.round(player.x), Math.round(player.y), 2);
   }
 
-  const WALL_CHARS = new Set(["#", "B", "K", "O"]);
+  const WALL_CHARS = new Set(["#", "B", "K", "O", "A", "N", "G", "L"]);
 
   function isBlocked(col, row) {
     if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return true;
