@@ -85,12 +85,15 @@
   const ROWS = 18;
 
   // Tile legend:
-  //  # = wall
+  //  # = wall (meat shelf if outer, box aisle if inner)
+  //  B = bakery bread shelf (wall)
+  //  K = bakery cake display (wall)
+  //  O = bakery donut display (wall)
   //  . = floor
   //  D = door (decorative for now)
   //  X = exit
   const LEVEL = [
-    "##########################",
+    "#BBOOKKBBOOKKBBOOKKBBOOKK#",
     "#........................#",
     "#.######..######..######.#",
     "#.######..######..######.#",
@@ -390,6 +393,141 @@
     return c === 0 || c === COLS - 1 || r === 0 || r === ROWS - 1;
   }
 
+  // Bakery bread shelf: wooden shelves with stacked round loaves.
+  function drawBreadShelf(x, y) {
+    // Wood back panel
+    ctx.fillStyle = "#7a4818";
+    ctx.fillRect(x, y, TILE, TILE);
+    // Wood grain
+    ctx.fillStyle = "#5a3010";
+    ctx.fillRect(x, y + 6, TILE, 1);
+    ctx.fillRect(x, y + 22, TILE, 1);
+
+    const loaves = [
+      { px: 3,  py: 2  },
+      { px: 17, py: 2  },
+      { px: 3,  py: 18 },
+      { px: 17, py: 18 },
+    ];
+    for (const l of loaves) {
+      // Loaf body
+      ctx.fillStyle = "#d8a868";
+      ctx.fillRect(x + l.px + 1, y + l.py + 1, 10, 8);
+      ctx.fillRect(x + l.px,     y + l.py + 2, 12, 6);
+      // Top highlight
+      ctx.fillStyle = "#f0d098";
+      ctx.fillRect(x + l.px + 2, y + l.py + 2, 8, 1);
+      // Slash marks
+      ctx.fillStyle = "#a06030";
+      ctx.fillRect(x + l.px + 3, y + l.py + 4, 2, 1);
+      ctx.fillRect(x + l.px + 7, y + l.py + 4, 2, 1);
+    }
+
+    // Shelf lips
+    ctx.fillStyle = "#3a2008";
+    ctx.fillRect(x, y + 14, TILE, 2);
+    ctx.fillRect(x, y + TILE - 2, TILE, 2);
+  }
+
+  // Bakery donut display: pegboard rack with four glazed donuts.
+  function drawDonutDisplay(x, y) {
+    // Cream backboard
+    ctx.fillStyle = "#e8dcc0";
+    ctx.fillRect(x, y, TILE, TILE);
+    // Wooden frame trim
+    ctx.fillStyle = "#8a5520";
+    ctx.fillRect(x, y, TILE, 2);
+    ctx.fillRect(x, y + TILE - 2, TILE, 2);
+    ctx.fillRect(x, y + 14, TILE, 2);
+
+    const donuts = [
+      { px: 3,  py: 4,  glaze: "#f0a0c0", sprinkle: true  }, // strawberry
+      { px: 17, py: 4,  glaze: "#5a3018", sprinkle: false }, // chocolate
+      { px: 3,  py: 20, glaze: "#f8e0a0", sprinkle: false }, // glazed
+      { px: 17, py: 20, glaze: "#a86028", sprinkle: true  }, // maple
+    ];
+    for (const d of donuts) {
+      // Dough ring base
+      ctx.fillStyle = "#c89858";
+      ctx.fillRect(x + d.px + 1, y + d.py,     10, 10);
+      ctx.fillRect(x + d.px,     y + d.py + 1, 12,  8);
+      // Hole
+      ctx.fillStyle = "#e8dcc0";
+      ctx.fillRect(x + d.px + 4, y + d.py + 3, 4, 4);
+      // Glaze
+      ctx.fillStyle = d.glaze;
+      ctx.fillRect(x + d.px + 2, y + d.py + 1, 8, 4);
+      ctx.fillRect(x + d.px + 1, y + d.py + 2, 10, 2);
+      // Re-cut hole through glaze
+      ctx.fillStyle = "#e8dcc0";
+      ctx.fillRect(x + d.px + 4, y + d.py + 3, 4, 2);
+      // Sprinkles
+      if (d.sprinkle) {
+        ctx.fillStyle = "#f0c040";
+        ctx.fillRect(x + d.px + 2, y + d.py + 2, 1, 1);
+        ctx.fillStyle = "#40c0f0";
+        ctx.fillRect(x + d.px + 8, y + d.py + 2, 1, 1);
+        ctx.fillStyle = "#f04040";
+        ctx.fillRect(x + d.px + 5, y + d.py + 1, 1, 1);
+      }
+    }
+  }
+
+  // Bakery cake display: glass case with a tiered, cherry-topped cake.
+  function drawCakeDisplay(x, y) {
+    // Wood base
+    ctx.fillStyle = "#5a3010";
+    ctx.fillRect(x, y, TILE, TILE);
+    // Glass case interior
+    ctx.fillStyle = "#c0d8e0";
+    ctx.fillRect(x + 1, y + 1, TILE - 2, 22);
+    // Glass shine
+    ctx.fillStyle = "#e8f0f8";
+    ctx.fillRect(x + 3, y + 2, 1, 18);
+    ctx.fillRect(x + 5, y + 2, 1, 6);
+
+    // Platter
+    ctx.fillStyle = "#909090";
+    ctx.fillRect(x + 4, y + 18, 24, 2);
+    ctx.fillStyle = "#d8d8d8";
+    ctx.fillRect(x + 4, y + 18, 24, 1);
+
+    // Bottom tier
+    ctx.fillStyle = "#f8e0d0";
+    ctx.fillRect(x + 6, y + 13, 20, 5);
+    ctx.fillStyle = "#f0c0a0";
+    ctx.fillRect(x + 6, y + 17, 20, 1);
+    ctx.fillRect(x + 9,  y + 18, 1, 1);
+    ctx.fillRect(x + 15, y + 18, 1, 1);
+    ctx.fillRect(x + 22, y + 18, 1, 1);
+
+    // Top tier
+    ctx.fillStyle = "#f8e0d0";
+    ctx.fillRect(x + 11, y + 8, 10, 5);
+    ctx.fillStyle = "#f0c0a0";
+    ctx.fillRect(x + 11, y + 12, 10, 1);
+
+    // Cherry
+    ctx.fillStyle = "#c01818";
+    ctx.fillRect(x + 15, y + 5, 3, 3);
+    ctx.fillStyle = "#ff5050";
+    ctx.fillRect(x + 16, y + 6, 1, 1);
+    ctx.fillStyle = "#208020";
+    ctx.fillRect(x + 16, y + 4, 1, 1);
+
+    // Glass case frame
+    ctx.fillStyle = "#7a4818";
+    ctx.fillRect(x, y, TILE, 2);
+    ctx.fillRect(x, y + 22, TILE, 2);
+    ctx.fillRect(x, y, 2, 24);
+    ctx.fillRect(x + TILE - 2, y, 2, 24);
+
+    // Wood grain on base
+    ctx.fillStyle = "#3a2008";
+    ctx.fillRect(x, y + 26, TILE, 1);
+    ctx.fillRect(x, y + 30, TILE, 1);
+  }
+
   function drawDoor(x, y) {
     drawFloor(x, y);
     ctx.fillStyle = "#803010";
@@ -441,6 +579,9 @@
             if (isOuterWall(c, r)) drawMeatShelf(x, y);
             else drawBoxAisle(x, y);
             break;
+          case "B": drawBreadShelf(x, y); break;
+          case "K": drawCakeDisplay(x, y); break;
+          case "O": drawDonutDisplay(x, y); break;
           case "D": drawDoor(x, y); break;
           case "X": drawExit(x, y); break;
           default:  drawFloor(x, y); break;
@@ -451,9 +592,11 @@
     drawSprite(PLAYER_SPRITES[player.facing], PLAYER_PALETTE, Math.round(player.x), Math.round(player.y), 2);
   }
 
+  const WALL_CHARS = new Set(["#", "B", "K", "O"]);
+
   function isBlocked(col, row) {
     if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return true;
-    return LEVEL[row][col] === "#";
+    return WALL_CHARS.has(LEVEL[row][col]);
   }
 
   function collides(px, py) {
