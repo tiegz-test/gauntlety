@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+        "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  com.user.eslogger-folderwatcher.plist - LaunchDaemon for
+  watch-folder-eslogger.sh.
+
+  Install (as root):
+    sudo cp launchd/com.user.eslogger-folderwatcher.plist \
+            /Library/LaunchDaemons/com.user.eslogger-folderwatcher.plist
+    sudo chown root:wheel \
+            /Library/LaunchDaemons/com.user.eslogger-folderwatcher.plist
+    sudo chmod 644 \
+            /Library/LaunchDaemons/com.user.eslogger-folderwatcher.plist
+    sudo launchctl bootstrap system \
+            /Library/LaunchDaemons/com.user.eslogger-folderwatcher.plist
+
+  Edit the ProgramArguments / EnvironmentVariables below before installing:
+    1) absolute path to watch-folder-eslogger.sh
+    2) folder to watch
+    3) log file path
+    4) GUI user that should receive the notification
+    5) ES_EVENTS - drop "open" if you only care about writes (much cheaper)
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.user.eslogger-folderwatcher</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/watch-folder-eslogger.sh</string>
+        <string>/Users/CHANGE_ME/Documents/Watched</string>
+        <string>/var/log/folder-watch.log</string>
+        <string>CHANGE_ME</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>ES_EVENTS</key>
+        <string>open close create rename unlink</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/var/log/folder-watch.stdout.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/var/log/folder-watch.stderr.log</string>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+</dict>
+</plist>
