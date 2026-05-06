@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+        "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  com.user.auditfolderwatcher.plist - LaunchDaemon for watch-audit-folder.sh
+
+  Install (as root):
+    sudo cp launchd/com.user.auditfolderwatcher.plist \
+            /Library/LaunchDaemons/com.user.auditfolderwatcher.plist
+    sudo chown root:wheel /Library/LaunchDaemons/com.user.auditfolderwatcher.plist
+    sudo chmod 644        /Library/LaunchDaemons/com.user.auditfolderwatcher.plist
+    sudo launchctl bootstrap system \
+            /Library/LaunchDaemons/com.user.auditfolderwatcher.plist
+
+  Edit the three ProgramArguments below before installing:
+    1) absolute path to watch-audit-folder.sh
+    2) folder to watch
+    3) log file path
+    4) GUI user that should receive the notification
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.user.auditfolderwatcher</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/watch-audit-folder.sh</string>
+        <string>/Users/CHANGE_ME/Documents/Watched</string>
+        <string>/var/log/folder-watch.log</string>
+        <string>CHANGE_ME</string>
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/var/log/folder-watch.stdout.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/var/log/folder-watch.stderr.log</string>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+</dict>
+</plist>

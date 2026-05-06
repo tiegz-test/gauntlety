@@ -1,0 +1,24 @@
+#
+# audit_control - BSM auditd policy for macOS
+#
+# Install:
+#   sudo cp audit/audit_control /etc/security/audit_control
+#   sudo chown root:wheel /etc/security/audit_control
+#   sudo chmod 600 /etc/security/audit_control
+#   sudo launchctl kickstart -k system/com.apple.auditd
+#   sudo audit -s   # reload policy
+#
+# The flags below enable two audit classes:
+#   fr - file read  (open-for-read, stat, etc.)
+#   fw - file write (open-for-write, create, unlink, rename, etc.)
+#
+# Audit is system-wide; we filter to a specific folder in
+# bin/watch-audit-folder.sh.  See audit_class(5) for all classes.
+#
+dir:/var/audit
+flags:lo,aa,fr,fw
+minfree:5
+naflags:lo,aa
+policy:cnt,argv
+filesz:2M
+expire-after:10M
