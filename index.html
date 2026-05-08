@@ -69,7 +69,7 @@
 <div id="wrap">
   <h1>GAUNTLETY &mdash; LEVEL 1</h1>
   <canvas id="game" width="832" height="576"></canvas>
-  <div class="hud">ARROWS / WASD TO MOVE</div>
+  <div class="hud">ARROWS / WASD TO MOVE &middot; HOLD SHIFT TO RUN</div>
   <div id="controls">
     <button class="up"    data-dir="up"    aria-label="Up">&#9650;</button>
     <button class="left"  data-dir="left"  aria-label="Left">&#9664;</button>
@@ -294,6 +294,41 @@
   const player = { x: 2 * TILE, y: 1 * TILE, facing: "down" };
   const PLAYER_SIZE = 32;
   const SPEED = 2;
+
+  const CART_SIZE = 32;
+  const CART_OFFSETS = {
+    up:         [0,    -TILE],
+    down:       [0,     TILE],
+    left:       [-TILE, 0],
+    right:      [TILE,  0],
+    up_left:    [-TILE, -TILE],
+    up_right:   [TILE,  -TILE],
+    down_left:  [-TILE,  TILE],
+    down_right: [TILE,   TILE],
+  };
+  const CART_VIEW_FOR = {
+    up: "up", down: "down", left: "left", right: "right",
+    up_left: "left", down_left: "left",
+    up_right: "right", down_right: "right",
+  };
+
+  const cart = { x: 0, y: 0, attached: false };
+
+  function placeCartRandomly() {
+    const candidates = [];
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (LEVEL[r][c] !== ".") continue;
+        // Keep clear of player start and the tile immediately south of it.
+        if ((c === 2 && r === 1) || (c === 2 && r === 2)) continue;
+        candidates.push([c, r]);
+      }
+    }
+    const [c, r] = candidates[Math.floor(Math.random() * candidates.length)];
+    cart.x = c * TILE;
+    cart.y = r * TILE;
+  }
+  placeCartRandomly();
 
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
@@ -640,6 +675,105 @@
     ctx.fillRect(x, y + 30, TILE, 1);
   }
 
+  // Shopping cart sprites — basket of grey wire, two visible wheels, handle on the
+  // back side relative to the cart's facing direction.
+  function drawCartDown(x, y) {
+    // Back-of-cart (handle) at top, front + wheels at bottom.
+    ctx.fillStyle = "#909090";
+    ctx.fillRect(x + 4, y + 3, TILE - 8, 2);
+    ctx.fillRect(x + 5, y + 5, 2, 4);
+    ctx.fillRect(x + TILE - 7, y + 5, 2, 4);
+
+    ctx.fillStyle = "#c8c8c8";
+    ctx.fillRect(x + 3, y + 9, TILE - 6, 18);
+    ctx.fillStyle = "#606060";
+    ctx.fillRect(x + 3, y + 9, TILE - 6, 1);
+    ctx.fillRect(x + 3, y + 26, TILE - 6, 1);
+    ctx.fillRect(x + 3, y + 9, 1, 18);
+    ctx.fillRect(x + TILE - 4, y + 9, 1, 18);
+    for (let i = 1; i < 5; i++) ctx.fillRect(x + 3 + i * 5, y + 10, 1, 16);
+    for (let i = 1; i < 4; i++) ctx.fillRect(x + 4, y + 9 + i * 5, TILE - 8, 1);
+
+    ctx.fillStyle = "#202020";
+    ctx.fillRect(x + 3, y + 28, 5, 3);
+    ctx.fillRect(x + TILE - 8, y + 28, 5, 3);
+  }
+
+  function drawCartUp(x, y) {
+    // Handle at bottom (closer to player), wheels at top.
+    ctx.fillStyle = "#909090";
+    ctx.fillRect(x + 4, y + TILE - 5, TILE - 8, 2);
+    ctx.fillRect(x + 5, y + TILE - 9, 2, 4);
+    ctx.fillRect(x + TILE - 7, y + TILE - 9, 2, 4);
+
+    ctx.fillStyle = "#c8c8c8";
+    ctx.fillRect(x + 3, y + 5, TILE - 6, 18);
+    ctx.fillStyle = "#606060";
+    ctx.fillRect(x + 3, y + 5, TILE - 6, 1);
+    ctx.fillRect(x + 3, y + 22, TILE - 6, 1);
+    ctx.fillRect(x + 3, y + 5, 1, 18);
+    ctx.fillRect(x + TILE - 4, y + 5, 1, 18);
+    for (let i = 1; i < 5; i++) ctx.fillRect(x + 3 + i * 5, y + 6, 1, 16);
+    for (let i = 1; i < 4; i++) ctx.fillRect(x + 4, y + 5 + i * 5, TILE - 8, 1);
+
+    ctx.fillStyle = "#202020";
+    ctx.fillRect(x + 3, y + 1, 5, 3);
+    ctx.fillRect(x + TILE - 8, y + 1, 5, 3);
+  }
+
+  function drawCartLeft(x, y) {
+    // Handle on the right (player side), front of cart on the left.
+    ctx.fillStyle = "#909090";
+    ctx.fillRect(x + TILE - 5, y + 4, 2, TILE - 8);
+    ctx.fillRect(x + TILE - 9, y + 5, 4, 2);
+    ctx.fillRect(x + TILE - 9, y + TILE - 7, 4, 2);
+
+    ctx.fillStyle = "#c8c8c8";
+    ctx.fillRect(x + 5, y + 3, 18, TILE - 6);
+    ctx.fillStyle = "#606060";
+    ctx.fillRect(x + 5, y + 3, 18, 1);
+    ctx.fillRect(x + 5, y + TILE - 4, 18, 1);
+    ctx.fillRect(x + 5, y + 3, 1, TILE - 6);
+    ctx.fillRect(x + 22, y + 3, 1, TILE - 6);
+    for (let i = 1; i < 4; i++) ctx.fillRect(x + 5 + i * 5, y + 4, 1, TILE - 8);
+    for (let i = 1; i < 5; i++) ctx.fillRect(x + 6, y + 3 + i * 5, 16, 1);
+
+    ctx.fillStyle = "#202020";
+    ctx.fillRect(x + 5,  y + TILE - 3, 4, 3);
+    ctx.fillRect(x + 17, y + TILE - 3, 4, 3);
+  }
+
+  function drawCartRight(x, y) {
+    // Handle on the left (player side), front of cart on the right.
+    ctx.fillStyle = "#909090";
+    ctx.fillRect(x + 3, y + 4, 2, TILE - 8);
+    ctx.fillRect(x + 5, y + 5, 4, 2);
+    ctx.fillRect(x + 5, y + TILE - 7, 4, 2);
+
+    ctx.fillStyle = "#c8c8c8";
+    ctx.fillRect(x + 9, y + 3, 18, TILE - 6);
+    ctx.fillStyle = "#606060";
+    ctx.fillRect(x + 9, y + 3, 18, 1);
+    ctx.fillRect(x + 9, y + TILE - 4, 18, 1);
+    ctx.fillRect(x + 9, y + 3, 1, TILE - 6);
+    ctx.fillRect(x + 26, y + 3, 1, TILE - 6);
+    for (let i = 1; i < 4; i++) ctx.fillRect(x + 9 + i * 5, y + 4, 1, TILE - 8);
+    for (let i = 1; i < 5; i++) ctx.fillRect(x + 10, y + 3 + i * 5, 16, 1);
+
+    ctx.fillStyle = "#202020";
+    ctx.fillRect(x + 11, y + TILE - 3, 4, 3);
+    ctx.fillRect(x + 23, y + TILE - 3, 4, 3);
+  }
+
+  function drawCart(x, y, view) {
+    switch (view) {
+      case "up":    drawCartUp(x, y);    break;
+      case "left":  drawCartLeft(x, y);  break;
+      case "right": drawCartRight(x, y); break;
+      default:      drawCartDown(x, y);  break;
+    }
+  }
+
   function drawDoor(x, y) {
     drawFloor(x, y);
     ctx.fillStyle = "#803010";
@@ -706,6 +840,17 @@
     }
 
     drawSprite(PLAYER_SPRITES[player.facing], PLAYER_PALETTE, Math.round(player.x), Math.round(player.y), 2);
+
+    const cartView = cart.attached ? CART_VIEW_FOR[player.facing] : "down";
+    drawCart(Math.round(cart.x), Math.round(cart.y), cartView);
+  }
+
+  function collidesCart(px, py) {
+    if (cart.attached) return false;
+    return !(px + PLAYER_SIZE <= cart.x ||
+             cart.x + CART_SIZE <= px ||
+             py + PLAYER_SIZE <= cart.y ||
+             cart.y + CART_SIZE <= py);
   }
 
   const WALL_CHARS = new Set(["#", "B", "K", "O", "A", "N", "G", "L"]);
@@ -737,6 +882,7 @@
 
   window.addEventListener("keydown", (e) => {
     const k = e.key.toLowerCase();
+    if (k === "shift") { keysDown.add(k); return; }
     if (["arrowup","arrowdown","arrowleft","arrowright","w","a","s","d"].includes(k)) {
       keysDown.add(k);
       e.preventDefault();
@@ -760,24 +906,69 @@
   });
 
   function tick() {
+    const speed = (keysDown.has("shift") ? 2 : 1) * SPEED;
     let dx = 0, dy = 0;
-    if (keysDown.has("arrowup")    || keysDown.has("w")) dy -= SPEED;
-    if (keysDown.has("arrowdown")  || keysDown.has("s")) dy += SPEED;
-    if (keysDown.has("arrowleft")  || keysDown.has("a")) dx -= SPEED;
-    if (keysDown.has("arrowright") || keysDown.has("d")) dx += SPEED;
-    if (buttonDir === "up")    dy -= SPEED;
-    if (buttonDir === "down")  dy += SPEED;
-    if (buttonDir === "left")  dx -= SPEED;
-    if (buttonDir === "right") dx += SPEED;
+    if (keysDown.has("arrowup")    || keysDown.has("w")) dy -= speed;
+    if (keysDown.has("arrowdown")  || keysDown.has("s")) dy += speed;
+    if (keysDown.has("arrowleft")  || keysDown.has("a")) dx -= speed;
+    if (keysDown.has("arrowright") || keysDown.has("d")) dx += speed;
+    if (buttonDir === "up")    dy -= speed;
+    if (buttonDir === "down")  dy += speed;
+    if (buttonDir === "left")  dx -= speed;
+    if (buttonDir === "right") dx += speed;
 
+    let desiredFacing = null;
     if (dx !== 0 || dy !== 0) {
-      const vert = dy < 0 ? "up" : dy > 0 ? "down" : "";
+      const vert  = dy < 0 ? "up"   : dy > 0 ? "down"  : "";
       const horiz = dx < 0 ? "left" : dx > 0 ? "right" : "";
-      player.facing = vert && horiz ? `${vert}_${horiz}` : (vert || horiz);
+      desiredFacing = vert && horiz ? `${vert}_${horiz}` : (vert || horiz);
     }
 
-    if (dx !== 0 && !collides(player.x + dx, player.y)) player.x += dx;
-    if (dy !== 0 && !collides(player.x, player.y + dy)) player.y += dy;
+    if (cart.attached) {
+      // Reorient the cart only if the new facing's offset is unobstructed.
+      if (desiredFacing) {
+        const [nox, noy] = CART_OFFSETS[desiredFacing];
+        if (!collides(player.x + nox, player.y + noy)) {
+          player.facing = desiredFacing;
+        }
+      }
+      const [ox, oy] = CART_OFFSETS[player.facing];
+      // Axis-separated movement, requiring both player and cart to fit.
+      if (dx !== 0
+          && !collides(player.x + dx, player.y)
+          && !collides(player.x + dx + ox, player.y + oy)) {
+        player.x += dx;
+      }
+      if (dy !== 0
+          && !collides(player.x, player.y + dy)
+          && !collides(player.x + ox, player.y + dy + oy)) {
+        player.y += dy;
+      }
+      cart.x = player.x + ox;
+      cart.y = player.y + oy;
+    } else {
+      if (desiredFacing) player.facing = desiredFacing;
+
+      if (dx !== 0 && !collides(player.x + dx, player.y)) {
+        if (collidesCart(player.x + dx, player.y)) {
+          cart.attached = true;
+        } else {
+          player.x += dx;
+        }
+      }
+      if (dy !== 0 && !collides(player.x, player.y + dy)) {
+        if (collidesCart(player.x, player.y + dy)) {
+          cart.attached = true;
+        } else {
+          player.y += dy;
+        }
+      }
+      if (cart.attached) {
+        const [ox, oy] = CART_OFFSETS[player.facing];
+        cart.x = player.x + ox;
+        cart.y = player.y + oy;
+      }
+    }
 
     render();
     requestAnimationFrame(tick);
